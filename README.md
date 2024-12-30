@@ -22,22 +22,11 @@ remora
 and you got result:
 ![img](./media/result.png)
 
-or if u running on git hooks you can add args `-githook=true`.
-
-example use on git pre-push hook
-```bash
-#!/bin/bash
-
-remora -githook=true
-
-if [ $? -eq 1 ]; then
-    echo "Check lagi Cuy, install mulu ngga maintenance"
-    exit 1  
-fi
-
-exit 0
+to set up githook
+``` shell
+curl -sSL https://raw.githubusercontent.com/born2ngopi/remora/blob/master/script/pre-push.sh | bash
 ```
 
-the deference between with and without `-githook=true` is how application stop/quit. 
-when -githook=true and if any critycal or, >4 high or >6 medium severity the application will stop os.Exist(1).
+the deference between with and without `--git-hook` is how application stop/quit. 
+when -git-hook and if any critycal or, >4 high or >6 medium severity the application will stop os.Exist(1).
 then you can handle the logic

@@ -1,19 +1,13 @@
-package main
+package table
 
 import (
 	"os"
 
+	"github.com/born2ngopi/remora/types"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
-type Row struct {
-	ruleId  string
-	level   string
-	message string
-	link    string
-}
-
-func Print(datas []Row) {
+func Print(datas []types.Row) {
 
 	var rows []table.Row
 
@@ -21,7 +15,7 @@ func Print(datas []Row) {
 		id = 1
 	)
 	for _, data := range datas {
-		rows = append(rows, table.Row{id, data.ruleId, data.level, data.message, data.link})
+		rows = append(rows, table.Row{id, data.RuleId, data.Level, data.Message, data.Link})
 		id++
 	}
 

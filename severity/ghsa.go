@@ -1,4 +1,4 @@
-package main
+package severity
 
 import (
 	"fmt"

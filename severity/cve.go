@@ -1,9 +1,11 @@
-package main
+package severity
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/born2ngopi/remora/types"
 )
 
 func GetSeverityCVE(id string) (string, error) {
@@ -20,7 +22,7 @@ func GetSeverityCVE(id string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	var data CveDetail
+	var data types.CveDetail
 
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {

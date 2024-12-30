@@ -1,9 +1,16 @@
-package main
+package types
 
 import "time"
 
 type (
-	totalLevel struct {
+	Row struct {
+		RuleId  string
+		Level   string
+		Message string
+		Link    string
+	}
+
+	TotalLevel struct {
 		Critical int
 		High     int
 		Medium   int
