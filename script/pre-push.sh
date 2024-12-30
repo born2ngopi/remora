@@ -10,6 +10,7 @@ fi
 if ! command -v remora &> /dev/null
 then
     echo "remora could not be found, please install first"
+    echo "you can use command 'go install github.com/born2ngopi/remora'"
     exit 1
 fi
 
@@ -32,7 +33,7 @@ else
 remora check -g=true -C=1 -H=4 -M=6
 
 if [ \$? -eq 1 ]; then
-    echo "Check lagi Cuy, install mulu ngga maintenance"
+    echo "Please fix the vulnerabilities before pushing"
     exit 1  
 fi
 EOT
