@@ -8,6 +8,13 @@ type (
 		Level   string
 		Message string
 		Link    string
+		Found   string
+		Fix     string
+	}
+
+	FoundFix struct {
+		Found string
+		Fix   string
 	}
 
 	TotalLevel struct {

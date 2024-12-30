@@ -23,11 +23,12 @@ var (
 		Short: "Check vulnerability in your project",
 		Run: func(cmd *cobra.Command, args []string) {
 			isGitHook := cmd.Flag("git-hook").Changed
+			csv, _ := cmd.Flags().GetBool("csv")
 			critical, _ := cmd.Flags().GetInt("critical")
 			high, _ := cmd.Flags().GetInt("high")
 			medium, _ := cmd.Flags().GetInt("medium")
 
-			vuln.Run(isGitHook, critical, high, medium)
+			vuln.Run(isGitHook, csv, critical, high, medium)
 		},
 	}
 
@@ -42,6 +43,7 @@ var (
 
 func init() {
 	checkCmd.PersistentFlags().BoolP("git-hook", "g", false, "Run as git hook")
+	checkCmd.PersistentFlags().BoolP("csv", "c", false, "Output to csv")
 	checkCmd.PersistentFlags().IntP("critical", "C", 1, "Set count critical")
 	checkCmd.PersistentFlags().IntP("high", "H", 4, "Set count high")
 	checkCmd.PersistentFlags().IntP("medium", "M", 6, "Set count medium")

@@ -1,6 +1,7 @@
 package vuln
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -26,7 +27,7 @@ var (
 	White   = "\033[97m"
 )
 
-func Run(isGitHook bool, critical, high, medium int) {
+func Run(isGitHook, isToCsv bool, critical, high, medium int) {
 	fileName, data, err := runVulnCheck()
 	if fileName != "" {
 		defer os.RemoveAll(fileName)
@@ -37,13 +38,19 @@ func Run(isGitHook bool, critical, high, medium int) {
 		os.Exit(1)
 	}
 
-	rows, tLevel, err := normalize(data)
+	foundFix, err := getFoundAndFixedVuln()
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
 
-	table.Print(rows)
+	rows, tLevel, err := normalize(data, foundFix)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	table.Print(isToCsv, rows)
 
 	if isGitHook {
 		var msg []string
@@ -64,6 +71,91 @@ func Run(isGitHook bool, critical, high, medium int) {
 			os.Exit(1)
 		}
 	}
+
+}
+
+func getFoundAndFixedVuln() (map[string]types.FoundFix, error) {
+	ctx := context.Background()
+
+	args := []string{
+		"./...",
+	}
+	// make output to file
+	f, err := os.CreateTemp(".", "vuln-*.text")
+	if err != nil {
+		return nil, err
+	}
+
+	fileName := f.Name()
+
+	defer func() {
+		f.Close()
+		os.RemoveAll(fileName)
+	}()
+
+	cmd := scan.Command(ctx, args...)
+	cmd.Stdout = f
+
+	err = cmd.Start()
+	if err == nil {
+		err = cmd.Wait()
+	}
+
+	switch err := err.(type) {
+	case nil:
+	case interface{ ExitCode() int }:
+	default:
+		return nil, err
+	}
+
+	type Vuln struct {
+		ID    string `json:"id"`
+		Found string `json:"found"`
+		Fixed string `json:"fixed"`
+	}
+
+	f.Seek(0, 0)
+
+	scanner := bufio.NewScanner(f)
+	var vulns []Vuln
+	var currentVuln Vuln
+	var foundFix = make(map[string]types.FoundFix)
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+
+		if strings.HasPrefix(line, "Vulnerability") {
+			if currentVuln.ID != "" {
+				vulns = append(vulns, currentVuln)
+			}
+
+			parts := strings.Split(line, ": ")
+			if len(parts) == 2 {
+				currentVuln = Vuln{ID: parts[1]}
+			}
+		} else if strings.HasPrefix(line, "Found in:") {
+			currentVuln.Found = strings.TrimPrefix(line, "Found in: ")
+		} else if strings.HasPrefix(line, "Fixed in:") {
+			currentVuln.Fixed = strings.TrimPrefix(line, "Fixed in: ")
+		}
+	}
+
+	if currentVuln.ID != "" {
+		vulns = append(vulns, currentVuln)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	for _, vuln := range vulns {
+		foundFix[vuln.ID] = types.FoundFix{
+			Found: vuln.Found,
+			Fix:   vuln.Fixed,
+		}
+	}
+
+	return foundFix, nil
 
 }
 
@@ -107,7 +199,7 @@ func runVulnCheck() (string, types.VulnCheck, error) {
 
 }
 
-func normalize(data types.VulnCheck) ([]types.Row, types.TotalLevel, error) {
+func normalize(data types.VulnCheck, foundFix map[string]types.FoundFix) ([]types.Row, types.TotalLevel, error) {
 	var rows []types.Row
 	var tLevel types.TotalLevel
 	var goCves = make(map[string]string)
@@ -162,6 +254,16 @@ func normalize(data types.VulnCheck) ([]types.Row, types.TotalLevel, error) {
 				Message: result.Message.Text,
 				Link:    link,
 			}
+
+			foundFix, ok := foundFix[result.RuleID]
+			if ok {
+				row.Found = foundFix.Found
+				row.Fix = foundFix.Fix
+			} else {
+				row.Found = "N\\A"
+				row.Fix = "N\\A"
+			}
+
 			switch severityStr {
 			case "critical":
 				tLevel.Critical++
