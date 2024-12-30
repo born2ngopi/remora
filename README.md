@@ -24,7 +24,7 @@ and you got result:
 
 to set up githook
 ``` shell
-curl -sSL https://raw.githubusercontent.com/born2ngopi/remora/blob/master/script/pre-push.sh | bash
+curl -sSL https://raw.githubusercontent.com/born2ngopi/remora/refs/heads/master/script/pre-push.sh | bash
 ```
 
 the deference between with and without `--git-hook` is how application stop/quit. 

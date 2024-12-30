@@ -25,7 +25,7 @@ fi
 
 if grep -q "remora " "$HOOK_PATH"; then
     sed -i '' 's|remora .*|remora check -g=true -C=1 -H=4 -M=6|' "$HOOK_PATH"
-    echo "Command remora diperbarui di pre-push hook."
+    echo "update pre-push hook"
 else
     cat <<EOT >> "$HOOK_PATH"
 
@@ -36,7 +36,6 @@ if [ \$? -eq 1 ]; then
     exit 1  
 fi
 EOT
-    echo "Command remora ditambahkan ke pre-push hook."
 fi
 
 # Pastikan hook executable
