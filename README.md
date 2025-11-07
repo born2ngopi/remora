@@ -1,7 +1,7 @@
 # remora
 
-This tools for increase awernes go engineer from vulnerability on standard libary or threedparty.
-Many engineers only remember when installing or adding threedparty but after that forget to always check the vuln on the installed threedparty.
+This tools for increase awareness go engineer from vulnerability on standard libary or third-party.
+Many engineers only remember when installing or adding third-party but after that forget to always check the vuln on the installed third-party.
 
 ## how to use:
 you can install:
@@ -27,6 +27,6 @@ to set up githook
 curl -sSL https://raw.githubusercontent.com/born2ngopi/remora/refs/heads/master/script/pre-push.sh | bash
 ```
 
-the deference between with and without `--git-hook` is how application stop/quit. 
-when -git-hook and if any critycal or, >4 high or >6 medium severity the application will stop os.Exist(1).
-then you can handle the logic
+The deference between with and without `--git-hook` is how application stop/quit. 
+When --git-hook and if any critycal or, >4 high or >6 medium severity the application will stop os.Exist(1).
+Then you can handle the logic.
