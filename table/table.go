@@ -33,7 +33,7 @@ func Print(isToCsv bool, datas []types.Row) {
 	}
 
 	t.AppendSeparator()
-	t.AppendFooter(goTable.Row{"", "", "Total", id, ""})
+	t.AppendFooter(goTable.Row{"", "", "Total", id - 1, ""})
 	if isToCsv {
 
 		// set output to csv
