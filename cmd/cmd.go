@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cmp"
 	"os"
 
 	"github.com/born2ngopi/remora/vuln"
@@ -27,8 +28,10 @@ var (
 			critical, _ := cmd.Flags().GetInt("critical")
 			high, _ := cmd.Flags().GetInt("high")
 			medium, _ := cmd.Flags().GetInt("medium")
+			dir, _ := cmd.Flags().GetString("dir")
+			dir = cmp.Or(dir, ".")
 
-			vuln.Run(isGitHook, csv, critical, high, medium)
+			vuln.Run(isGitHook, csv, critical, high, medium, dir)
 		},
 	}
 
@@ -47,6 +50,7 @@ func init() {
 	checkCmd.PersistentFlags().IntP("critical", "C", 1, "Set count critical")
 	checkCmd.PersistentFlags().IntP("high", "H", 4, "Set count high")
 	checkCmd.PersistentFlags().IntP("medium", "M", 6, "Set count medium")
+	checkCmd.PersistentFlags().StringP("dir", "d", "", "Directory path will check")
 }
 
 func Execute() {

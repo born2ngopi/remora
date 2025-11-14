@@ -27,8 +27,8 @@ var (
 	White   = "\033[97m"
 )
 
-func Run(isGitHook, isToCsv bool, critical, high, medium int) {
-	fileName, data, err := runVulnCheck()
+func Run(isGitHook, isToCsv bool, critical, high, medium int, dir string) {
+	fileName, data, err := runVulnCheck(dir)
 	if fileName != "" {
 		defer os.RemoveAll(fileName)
 	}
@@ -38,7 +38,7 @@ func Run(isGitHook, isToCsv bool, critical, high, medium int) {
 		os.Exit(1)
 	}
 
-	foundFix, err := getFoundAndFixedVuln()
+	foundFix, err := getFoundAndFixedVuln(dir)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -74,12 +74,9 @@ func Run(isGitHook, isToCsv bool, critical, high, medium int) {
 
 }
 
-func getFoundAndFixedVuln() (map[string]types.FoundFix, error) {
+func getFoundAndFixedVuln(dir string) (map[string]types.FoundFix, error) {
 	ctx := context.Background()
 
-	args := []string{
-		"./...",
-	}
 	// make output to file
 	f, err := os.CreateTemp(".", "vuln-*.text")
 	if err != nil {
@@ -93,6 +90,10 @@ func getFoundAndFixedVuln() (map[string]types.FoundFix, error) {
 		os.RemoveAll(fileName)
 	}()
 
+	args := []string{
+		"-C=" + dir,
+		"./...",
+	}
 	cmd := scan.Command(ctx, args...)
 	cmd.Stdout = f
 
@@ -159,13 +160,8 @@ func getFoundAndFixedVuln() (map[string]types.FoundFix, error) {
 
 }
 
-func runVulnCheck() (string, types.VulnCheck, error) {
+func runVulnCheck(dir string) (string, types.VulnCheck, error) {
 	ctx := context.Background()
-
-	args := []string{
-		"-format=sarif",
-		"./...",
-	}
 
 	// make output to file
 	f, err := os.CreateTemp(".", "vuln-*.json")
@@ -177,6 +173,11 @@ func runVulnCheck() (string, types.VulnCheck, error) {
 
 	defer f.Close()
 
+	args := []string{
+		"-format=sarif",
+		"-C=" + dir,
+		"./...",
+	}
 	cmd := scan.Command(ctx, args...)
 	cmd.Stdout = f
 
