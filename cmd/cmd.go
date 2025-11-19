@@ -30,8 +30,9 @@ var (
 			medium, _ := cmd.Flags().GetInt("medium")
 			dir, _ := cmd.Flags().GetString("dir")
 			dir = cmp.Or(dir, ".")
+			walk, _ := cmd.Flags().GetBool("walk")
 
-			vuln.Run(isGitHook, csv, critical, high, medium, dir)
+			vuln.Run(isGitHook, csv, critical, high, medium, dir, walk)
 		},
 	}
 
@@ -51,6 +52,7 @@ func init() {
 	checkCmd.PersistentFlags().IntP("high", "H", 4, "Set count high")
 	checkCmd.PersistentFlags().IntP("medium", "M", 6, "Set count medium")
 	checkCmd.PersistentFlags().StringP("dir", "d", "", "Directory path will check")
+	checkCmd.PersistentFlags().BoolP("walk", "W", false, "walk directory if have multiple go.mod files")
 }
 
 func Execute() {

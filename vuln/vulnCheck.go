@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/born2ngopi/remora/severity"
@@ -27,7 +29,56 @@ var (
 	White   = "\033[97m"
 )
 
-func Run(isGitHook, isToCsv bool, critical, high, medium int, dir string) {
+func Run(isGitHook, isToCsv bool, critical, high, medium int, dir string, walk bool) {
+	if walk {
+		filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// check only folder
+			if !d.IsDir() {
+				return nil
+			}
+
+			modPath := filepath.Join(path, "go.mod")
+			if _, err := os.Stat(modPath); err == nil {
+				// root app
+				fmt.Printf(Green + "Check Vuln At " + path + " " + Reset + "\n")
+				_ = run(isToCsv, path)
+				return fs.SkipDir
+			}
+
+			return nil
+		})
+		return
+	}
+
+	tLevel := run(isToCsv, dir)
+
+	if isGitHook {
+		var msg []string
+		if tLevel.Critical >= critical {
+			msg = append(msg, fmt.Sprintf("%d Critical vulnerabilities found", tLevel.Critical))
+		}
+
+		if tLevel.High >= high {
+			msg = append(msg, fmt.Sprintf("%d High vulnerabilities found", tLevel.High))
+		}
+
+		if tLevel.Medium >= medium {
+			msg = append(msg, fmt.Sprintf("%d Medium vulnerabilities found", tLevel.Medium))
+		}
+
+		if len(msg) > 0 {
+			fmt.Println("\033[31m" + strings.Join(msg, " & ") + "\033[0m")
+			os.Exit(1)
+		}
+	}
+
+}
+
+func run(isToCsv bool, dir string) types.TotalLevel {
 	fileName, data, err := runVulnCheck(dir)
 	if fileName != "" {
 		defer os.RemoveAll(fileName)
@@ -52,26 +103,7 @@ func Run(isGitHook, isToCsv bool, critical, high, medium int, dir string) {
 
 	table.Print(isToCsv, rows)
 
-	if isGitHook {
-		var msg []string
-		if tLevel.Critical >= critical {
-			msg = append(msg, fmt.Sprintf("%d Critical vulnerabilities found", tLevel.Critical))
-		}
-
-		if tLevel.High >= high {
-			msg = append(msg, fmt.Sprintf("%d High vulnerabilities found", tLevel.High))
-		}
-
-		if tLevel.Medium >= medium {
-			msg = append(msg, fmt.Sprintf("%d Medium vulnerabilities found", tLevel.Medium))
-		}
-
-		if len(msg) > 0 {
-			fmt.Println("\033[31m" + strings.Join(msg, " & ") + "\033[0m")
-			os.Exit(1)
-		}
-	}
-
+	return tLevel
 }
 
 func getFoundAndFixedVuln(dir string) (map[string]types.FoundFix, error) {
